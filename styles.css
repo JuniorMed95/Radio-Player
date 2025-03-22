@@ -99,13 +99,13 @@ body {
 }
 
 .track-info h2 {
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     margin-bottom: 0.5rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .track-info p {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -211,5 +211,13 @@ input[type="range"]::-webkit-slider-thumb {
     
     .controls {
         flex-direction: column;
+    }
+    
+    .track-info h2 {
+        font-size: 1.5rem;
+    }
+    
+    .track-info p {
+        font-size: 1.2rem;
     }
 }
