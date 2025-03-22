@@ -2,14 +2,14 @@ import * as THREE from 'three';
 
 class RadioPlayer {
     constructor() {
-        this.audio = new Audio();
+        this.audio = new Audio('https://media.radiostreamingjm.com/listen/stereojm/radio.mp3');
         this.audio.crossOrigin = "anonymous";
         this.audio.volume = 1;
         this.isPlaying = false;
         this.pendingPlay = false;
 
         this.setupUI();
-        this.setupVisualizer(); 
+        this.setupVisualizer();
         this.setupMetadataUpdates();
         this.createBackgroundImage();
         window.addEventListener('resize', this.handleResize.bind(this));
@@ -56,20 +56,22 @@ class RadioPlayer {
     }
 
     async togglePlay() {
+        if (this.pendingPlay) return;
+        this.pendingPlay = true;
+        
         try {
-            if (!this.audioContext) {
-                this.setupAudioContext();
-            }
-            
-            if (this.audioContext.state === 'suspended') {
-                await this.audioContext.resume();
-            }
-
             if (!this.isPlaying) {
-                if (!this.audio.src) {
-                    this.audio.src = 'https://media.radiostreamingjm.com/listen/stereojm/radio.mp3';
-                    await new Promise(resolve => this.audio.addEventListener('loadedmetadata', resolve));
+                // Create new audio element with fresh stream
+                if (this.audioContext) {
+                    await this.audioContext.close();
+                    this.audioContext = null;
                 }
+                
+                this.audio = new Audio(`https://media.radiostreamingjm.com/listen/stereojm/radio.mp3?t=${Date.now()}`);
+                this.audio.crossOrigin = "anonymous";
+                this.audio.volume = this.volumeControl.value;
+                
+                this.setupAudioContext();
                 await this.audio.play();
                 this.isPlaying = true;
             } else {
@@ -82,6 +84,8 @@ class RadioPlayer {
             console.error('Playback error:', err);
             this.isPlaying = false;
             this.updatePlayButton();
+        } finally {
+            this.pendingPlay = false;
         }
     }
 
@@ -94,11 +98,8 @@ class RadioPlayer {
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.analyser = this.audioContext.createAnalyser();
         this.source = this.audioContext.createMediaElementSource(this.audio);
-        
         this.source.connect(this.analyser);
         this.analyser.connect(this.audioContext.destination);
-        
-        // Increase FFT size for better frequency resolution
         this.analyser.fftSize = 2048;
         this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
     }
